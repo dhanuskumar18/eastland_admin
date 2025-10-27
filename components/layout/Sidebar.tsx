@@ -1,19 +1,16 @@
 'use client';
 
 import Link from "next/link";
-import { Button } from "@heroui/button";
 import { ThemeConfig } from "@/config/theme";
 import { SimpleLayoutType } from "@/config/constants";
 import { getNavItemsBySection, NavItem, navItems } from "@/config/nav";
-import { Logo, LogoutIcon, ChevronIcon } from "@/components/icons";
+import { LogoutIcon } from "@/components/icons";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-import { useTheme } from "next-themes";
 
 interface SidebarProps {
   theme: ThemeConfig;
@@ -29,13 +26,12 @@ export function Sidebar({ theme, variant, isCollapsed, onCollapsedChange }: Side
   const [popupPosition, setPopupPosition] = useState({ top: 0 , bottom: 0 });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const popupRef = useRef<HTMLDivElement>(null);
   const [isPopupHovered, setIsPopupHovered] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
   const leaveTimeoutRef = useRef<NodeJS.Timeout>();
-  const { resolvedTheme } = useTheme();
   useEffect(() => {
     return () => {
       if (hoverTimeoutRef.current) {
@@ -351,28 +347,29 @@ export function Sidebar({ theme, variant, isCollapsed, onCollapsedChange }: Side
        role="navigation"
        aria-label="Main navigation"
      >
-             {/* Header with Logo */}
-       <div className="h-16 flex items-center px-6 border-b border-border">
-        <div className="flex items-center justify-center flex-1">
-        {/* {!isCollapsed ? (
-            <Image
-              src={resolvedTheme === "dark" ? "/images/logo/logo2.svg" : "/images/logo/amaramba_logo.png"}
-              alt="Amaramba"
-              width={1080}
-              height={1080}
-              className="h-[48px] object-contain"
-            />
-          ) : (
-            <Image
-              src={resolvedTheme === "dark" ? "/images/logo/logo2.svg" : "/images/logo/Logwwo.png"}
-              alt="Amaramba"
-              width={580}
-              height={1080}
-              className="w-[20px] h-[30px] object-contain"
-            />
-          )} */}
-          Eastland distributors
-        </div>
+      {/* Header with Logo */}
+      <div className="h-16 flex items-center justify-between px-6 border-b border-border">
+        {!isCollapsed && (
+          <span className="text-sm font-semibold">Eastland Distributors</span>
+        )}
+        <button
+          onClick={() => onCollapsedChange(!isCollapsed)}
+          className="text-secondary hover:text-primary transition-colors p-1 rounded-lg hover:bg-overlay"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-5 w-5" 
+            viewBox="0 0 20 20" 
+            fill="currentColor"
+          >
+            {isCollapsed ? (
+              <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+            ) : (
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            )}
+          </svg>
+        </button>
       </div>
 
       {/* Navigation Sections */}
@@ -405,145 +402,27 @@ export function Sidebar({ theme, variant, isCollapsed, onCollapsedChange }: Side
         )}
       </div>
 
-      {/* User Profile */}
+      {/* Logout Button */}
       {isAuthenticated && (
-        <div 
-                     className={`
-             relative p-4 border-t border-border
-             ${isCollapsed ? 'text-center' : ''}
-           `}
-          onMouseEnter={(e) => handleMouseEnter(e, 'profile')}
-          onMouseLeave={handleMouseLeave}
-        >
-          <div className={`
-            flex items-center gap-3
-            ${isCollapsed ? 'justify-center' : 'justify-between'}
-          `}>
-            <div className="flex items-center min-w-0 gap-3 flex-1">
-              {user?.profile?.picture ? (
-                <img
-                  src={user.profile.picture}
-                  alt={user?.profile?.firstName || "User"}
-                  className="w-9 h-9 rounded-full bg-light-gray flex-shrink-0 object-cover"
-                />
-              ) : (
-                <div className="w-9 h-9 rounded-full bg-primary-blue flex-shrink-0 flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">
-                    {user?.profile?.firstName ? user.profile.firstName.charAt(0).toUpperCase() : 'U'}
-                  </span>
-                </div>
-              )}
-              {!isCollapsed && (
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-primary truncate">
-                    {user?.profile?.firstName ? `${user.profile.firstName} ${user.profile.lastName || ''}` : 'User'}
-                  </p>
-                  <p className="text-xs text-muted truncate">
-                    {user?.email || 'user@example.com'}
-                  </p>
-                </div>
-              )}
-            </div>
+        <div className="p-4 border-t border-border">
+          <button
+            className={`
+              w-full flex items-center gap-3 px-4 py-3 rounded-xl
+              text-secondary hover:bg-overlay hover:text-primary
+              transition-all duration-300
+              ${isCollapsed ? 'justify-center' : 'justify-start'}
+            `}
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            aria-label="Sign out"
+          >
+            <LogoutIcon className="w-5 h-5" />
             {!isCollapsed && (
-              <button
-                className="text-muted hover:text-secondary transition-colors duration-200"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                aria-label="Sign out"
-              >
-                <LogoutIcon className="w-5 h-5" />
-              </button>
+              <span className="text-sm font-regular">
+                {isLoggingOut ? 'Logging out...' : 'Logout'}
+              </span>
             )}
-          </div>
-
-          {/* Profile Popup for Collapsed State */}
-          <AnimatePresence>
-            {isCollapsed && hoveredItem === 'profile' && (
-              <motion.div
-                ref={popupRef}
-                style={{ 
-                  position: 'fixed',
-                  top: popupPosition.top,
-                  left: '60px',
-                  pointerEvents: 'auto',
-                  transform: 'translateY(-80%)'
-                }}
-                className="
-                  bg-background rounded-lg shadow-lg border border-default-200 
-                  min-w-[240px] z-[99999] p-4
-                "
-                initial={menuAnimation.initial}
-                animate={menuAnimation.animate}
-                exit={menuAnimation.exit}
-                transition={menuAnimation.transition}
-                onMouseEnter={handlePopupMouseEnter}
-                onMouseLeave={handlePopupMouseLeave}
-                role="dialog"
-                aria-label="User profile menu"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    {user?.profile?.picture ? (
-                      <img
-                        src={user.profile.picture}
-                        alt={user?.profile?.firstName || "User"}
-                        className="w-10 h-10 rounded-full bg-default-100 flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-primary-blue flex-shrink-0 flex items-center justify-center">
-                        <span className="text-white text-sm font-semibold">
-                          {user?.profile?.firstName ? user.profile.firstName.charAt(0).toUpperCase() : 'U'}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-medium text-default-900 truncate">
-                        {user?.profile?.firstName ? `${user.profile.firstName} ${user.profile.lastName || ''}` : 'User'}
-                      </p>
-                      <p className="text-xs text-default-500 truncate">
-                        {user?.email || 'user@example.com'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1 pt-2 border-t border-default-100">
-                    <Link
-                      href="/settings/profile"
-                      className="w-full"
-                    >
-                      <Button
-                        variant="light"
-                        className="w-full justify-start text-default-600 hover:text-default-900"
-                      >
-                        View Profile
-                      </Button>
-                    </Link>
-                    <Link
-                      href="/settings"
-                      className="w-full"
-                    >
-                      <Button
-                        variant="light"
-                        className="w-full justify-start text-default-600 hover:text-default-900"
-                      >
-                        Settings
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="light"
-                      className="w-full justify-start text-default-500 hover:text-danger"
-                      onClick={handleLogout}
-                      isLoading={isLoggingOut}
-                      isDisabled={isLoggingOut}
-                    >
-                      <LogoutIcon className="text-lg mr-2" />
-                      Sign Out
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          </button>
         </div>
       )}
     </aside>
