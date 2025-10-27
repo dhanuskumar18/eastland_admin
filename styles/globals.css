@@ -1,0 +1,506 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+  :root {
+    /* Primary Colors */
+    --primary-blue: #003B27;
+    --primary-light-blue: #13b4fb;
+    --primary-light-blue-alpha: #13b4fb87;
+    --primary-dark: #041e3f;
+
+    /* Background Colors */
+    --bg-main: #ffffff;
+    --bg-gray: #f3f3f3;
+    --bg-light-gray: #f3f3f3;
+    --bg-light-blue: #ecf9ff;
+    --bg-gray-light: #eff2f4;
+    --bg-gray-medium: #f3f4f5;
+    --bg-overlay: #4a4a4a0f;
+    --bg-border: #e6e6e6;
+    --bg-section: #ebebeb;
+    --bg-dark: #000000;
+    --bg-dark2: #ffffff;
+
+    /* Text Colors */
+    --text-primary: #041e3f;
+    --text-secondary: #1d242a;
+    --text-dark: #212121;
+    --text-medium: #282828;
+    --text-gray: #404040;
+    --text-light-gray: #4b4b4b;
+    --text-muted: #5c7084;
+    --text-light: #5f5f5f;
+    --text-black: #000000;
+    --text-dark-gray: #1b1a1a;
+    --text-alpha: #3c3c43d8;
+    --text-white: #ffffff;
+    --text-white-alpha: #ffffff89;
+
+    /* Footer Colors */
+    --footer-bg: #101532;
+    --footer-accent: #1c51a0;
+    --footer-overlay: #363a4766;
+    --footer-text: #8c93a3;
+    --footer-text-alt: #8c94a3;
+    --footer-text-light: #b6bac6;
+
+    /* Button Colors */
+    --button-overlay: #ffffff0c;
+  }
+
+  .dark {
+    /* Primary Colors - Dark */
+    --primary-blue: #003B27;
+    --primary-light-blue: #66cefc;
+    --primary-light-blue-alpha: #66cefc87;
+    --primary-dark: #e2f6ff;
+
+    /* Background Colors - Dark */
+    --bg-main: #0d0d0e;
+    --bg-gray: #19191c;
+    --bg-light-gray: #19191c;
+    --bg-light-blue: #06364b;
+    --bg-gray-light: #26262a;
+    --bg-gray-medium: #323238;
+    --bg-overlay: #ffffff0f;
+    --bg-border: #3f3f46;
+    --bg-section: #26262a;
+    --bg-dark: #ffffff;
+    --bg-dark2: #19191c;
+    /* Text Colors - Dark */
+    --text-primary: #ffffff;
+    --text-secondary: #e4e4e7;
+    --text-dark: #d4d4d8;
+    --text-medium: #c4c4c8;
+    --text-gray: #b4b4b8;
+    --text-light-gray: #a4a4a8;
+    --text-muted: #8c8c90;
+    --text-light: #7c7c80;
+    --text-black: #ffffff;
+    --text-dark-gray: #e4e4e7;
+    --text-alpha: #ffffffd8;
+    --text-white: #000000;
+    --text-white-alpha: #00000089;
+
+    /* Footer Colors - Dark */
+    --footer-bg: #19191c;
+    --footer-accent: #003B27;
+    --footer-overlay: #ffffff66;
+    --footer-text: #a4a4a8;
+    --footer-text-alt: #b4b4b8;
+    --footer-text-light: #c4c4c8;
+
+    /* Button Colors - Dark */
+    --button-overlay: #0000000c;
+  }
+}
+
+@layer utilities {
+  /* Primary Colors */
+  .bg-primary-blue {
+    background-color: var(--primary-blue);
+  }
+  .bg-primary-light-blue {
+    background-color: var(--primary-light-blue);
+  }
+  .bg-primary-light-blue-alpha {
+    background-color: var(--primary-light-blue-alpha);
+  }
+  .text-primary-blue {
+    color: var(--primary-blue);
+  }
+  .text-primary-light-blue {
+    color: var(--primary-light-blue);
+  }
+  .text-primary-dark {
+    color: var(--primary-dark);
+  }
+
+  /* Background Colors */
+  .bg-main {
+    background-color: var(--bg-main);
+  }
+  .bg-light-gray {
+    background-color: var(--bg-light-gray);
+  }
+  .bg-light-blue {
+    background-color: var(--bg-light-blue);
+  }
+  .bg-gray-light {
+    background-color: var(--bg-gray-light);
+  }
+  .bg-gray-medium {
+    background-color: var(--bg-gray-medium);
+  }
+  .bg-overlay {
+    background-color: var(--bg-overlay);
+  }
+  .bg-border {
+    background-color: var(--bg-border);
+  }
+  /* Border Color Token */
+  .border-border {
+    border-color: var(--bg-border);
+  }
+  .bg-section {
+    background-color: var(--bg-section);
+  }
+  .bg-dark {
+    background-color: var(--bg-dark);
+  }
+  .bg-dark2 {
+    background-color: var(--bg-dark2);
+  }
+  /* Text Colors */
+  .text-primary {
+    color: var(--text-primary);
+  }
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  .text-dark {
+    color: var(--text-dark);
+  }
+  .text-medium {
+    color: var(--text-medium);
+  }
+  .text-gray {
+    color: var(--text-gray);
+  }
+  .text-light-gray {
+    color: var(--text-light-gray);
+  }
+  .text-muted {
+    color: var(--text-muted);
+  }
+  .text-light {
+    color: var(--text-light);
+  }
+  .text-black {
+    color: var(--text-black);
+  }
+  .text-dark-gray {
+    color: var(--text-dark-gray);
+  }
+  .text-alpha {
+    color: var(--text-alpha);
+  }
+  .text-white {
+    color: var(--text-white);
+  }
+  .text-white-alpha {
+    color: var(--text-white-alpha);
+  }
+
+  /* Footer Colors */
+  .bg-footer {
+    background-color: var(--footer-bg);
+  }
+  .bg-footer-accent {
+    background-color: var(--footer-accent);
+  }
+  .bg-footer-overlay {
+    background-color: var(--footer-overlay);
+  }
+  .text-footer {
+    color: var(--footer-text);
+  }
+  .text-footer-alt {
+    color: var(--footer-text-alt);
+  }
+  .text-footer-light {
+    color: var(--footer-text-light);
+  }
+
+  /* Button Colors */
+  .bg-button-overlay {
+    background-color: var(--button-overlay);
+  }
+
+  /* Border Colors */
+  .border-border {
+    border-color: var(--bg-border);
+  }
+
+  /* Shadcn/ui compatibility */
+  .bg-background {
+    background-color: var(--bg-main);
+  }
+  .text-foreground {
+    color: var(--text-primary);
+  }
+}
+@layer base {
+  :root {
+    /* Global Colors */
+    --global-bg-1: #101532;
+    --global-bg-2: #13b4fb;
+    --global-bg-3: #158dfd87;
+    --global-bg-4: #1c51a0;
+    --global-bg-5: #363a4766;
+    --global-bg-6: #f1f9ff;
+    --global-bg-7: #f3f3f3;
+    --global-bg-8: #ffffff;
+    --global-bg-9: #e5e5e5;
+
+    --global-text-1: #000000;
+    --global-text-2: #041e3f;
+    --global-text-3: #0585db;
+    --global-text-4: #13b4fb;
+    --global-text-5: #1b1a1a;
+    --global-text-6: #1d242a;
+    --global-text-7: #212121;
+    --global-text-8: #282828;
+    --global-text-9: #404040;
+    --global-text-10: #4b4b4b;
+    --global-text-11: #5f5f5f;
+    --global-text-12: #8c93a3;
+    --global-text-13: #8c94a3;
+    --global-text-14: #b6bac6;
+    --global-text-15: #ffffff;
+
+    /* Button Colors */
+    --button-bg-1: #ffffff0c;
+  }
+
+  .dark {
+    /* Global Colors - Dark */
+    --global-bg-1: #0a0e21;
+    --global-bg-2: #66cefc;
+    --global-bg-3: #66cefc87;
+    --global-bg-4: #003B27;
+    --global-bg-5: #ffffff66;
+    --global-bg-6: #06364b;
+    --global-bg-7: #19191c;
+    --global-bg-8: #0d0d0e;
+    --global-bg-9: #d4d4d8;
+
+    --global-text-1: #ffffff;
+    --global-text-2: #e2f6ff;
+    --global-text-3: #003B27;
+    --global-text-4: #66cefc;
+    --global-text-5: #e4e4e7;
+    --global-text-6: #d4d4d8;
+    --global-text-7: #c4c4c8;
+    --global-text-8: #b4b4b8;
+    --global-text-9: #a4a4a8;
+    --global-text-10: #949498;
+    --global-text-11: #848488;
+    --global-text-12: #a4a4a8;
+    --global-text-13: #b4b4b8;
+    --global-text-14: #c4c4c8;
+    --global-text-15: #000000;
+
+    /* Button Colors - Dark */
+    --button-bg-1: #0000000c;
+  }
+}
+
+@layer utilities {
+  /* Global Background */
+  .bg-global-1 {
+    background-color: var(--global-bg-1);
+  }
+  .bg-global-2 {
+    background-color: var(--global-bg-2);
+  }
+  .bg-global-3 {
+    background-color: var(--global-bg-3);
+  }
+  .bg-global-4 {
+    background-color: var(--global-bg-4);
+  }
+  .bg-global-5 {
+    background-color: var(--global-bg-5);
+  }
+  .bg-global-6 {
+    background-color: var(--global-bg-6);
+  }
+  .bg-global-7 {
+    background-color: var(--global-bg-7);
+  }
+  .bg-global-8 {
+    background-color: var(--global-bg-8);
+  }
+  .bg-global-9 {
+    background-color: var(--global-bg-9);
+  }
+
+  /* Global Text */
+  .text-global-1 {
+    color: var(--global-text-1);
+  }
+  .text-global-2 {
+    color: var(--global-text-2);
+  }
+  .text-global-3 {
+    color: var(--global-text-3);
+  }
+  .text-global-4 {
+    color: var(--global-text-4);
+  }
+  .text-global-5 {
+    color: var(--global-text-5);
+  }
+  .text-global-6 {
+    color: var(--global-text-6);
+  }
+  .text-global-7 {
+    color: var(--global-text-7);
+  }
+  .text-global-8 {
+    color: var(--global-text-8);
+  }
+  .text-global-9 {
+    color: var(--global-text-9);
+  }
+  .text-global-10 {
+    color: var(--global-text-10);
+  }
+  .text-global-11 {
+    color: var(--global-text-11);
+  }
+  .text-global-12 {
+    color: var(--global-text-12);
+  }
+  .text-global-13 {
+    color: var(--global-text-13);
+  }
+  .text-global-14 {
+    color: var(--global-text-14);
+  }
+  .text-global-15 {
+    color: var(--global-text-15);
+  }
+
+  /* Button */
+  .bg-button-1 {
+    background-color: var(--button-bg-1);
+  }
+}
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 2rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
+}
+
+@keyframes pattern-slide-up {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-pattern-slide-up {
+  animation: pattern-slide-up 1.2s ease-out both;
+}
+
+/* Toast progress animation - width from 100% to 0% */
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.animate-toast-progress {
+  animation-name: toast-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* Fix dropdown z-index issues in modals */
+[data-heroui-select-popover] {
+  z-index: 9999 !important;
+}
+
+[data-heroui-select-content] {
+  z-index: 9999 !important;
+}
+
+/* Ensure modal backdrop doesn't interfere with dropdowns */
+[data-heroui-modal-backdrop] {
+  z-index: 9997 !important;
+}
+
+[data-heroui-modal] {
+  z-index: 9998 !important;
+}
