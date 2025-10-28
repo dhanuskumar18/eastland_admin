@@ -1,6 +1,7 @@
 "use client"
 
 import { Pencil, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 // Dummy data for pages
 const dummyPages = [
@@ -13,7 +14,7 @@ const dummyPages = [
   {
     id: 2,
     title: "YouTube Playlist Sync",
-    url: "www.eastland.com/youtube",
+    url: "www.eastland.com/about-us",
     date: "2025/10/06 at 09:30 am"
   },
   {
@@ -77,9 +78,11 @@ export default function PagesPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex items-center space-x-3">
-                      <button className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
-                        <Pencil className="w-4 h-4" />
-                      </button>
+                      <Link href={page.url.includes('/about') ? '/pages/edit/about-us' : '/pages/edit'}>
+                        <button className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      </Link>
                       <button className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
