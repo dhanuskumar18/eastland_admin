@@ -7,7 +7,7 @@ import { User, AuthState, AuthContextType } from "@/types/auth";
 import { getProfileImageUrl, setProfileImageUrl, clearProfileImageUrl } from "@/utils/storage";
 import { decryptToken } from "@/utils/decryptToken";
 import { logout as logoutApi, getGoogleAuthUrl, getProfile, getAdminProfile } from "@/services/auth";
-import { initializeTokenFromLogin, clearAccessToken } from "@/utils/tokenManager";
+import { initializeTokenFromLogin, clearAccessToken, getAccessToken, attemptTokenRefresh, setSuppressAuthActions } from "@/utils/tokenManager";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -102,6 +102,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Prevent any refresh attempts while logging out
+      setSuppressAuthActions(true);
       setAuthState((prev) => ({ ...prev, isLoading: true }));
 
       // Call logout API first - backend handles cookie clearing
@@ -110,6 +112,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Clear local state after successful API call
       clearAccessToken();
       clearProfileImageUrl();
+      
+      // Clear all possible storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+        // Clear any cookies that might be set
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+      }
+      
       setAuthState({
         isAuthenticated: false,
         user: null,
@@ -117,8 +130,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error: null,
       });
 
-      // Force reload to clear any cached state
-      window.location.href = "/";
+      console.log("AuthContext - Logout completed, redirecting to login");
+      
+      // Small delay to ensure state updates are processed before redirect
+      setTimeout(() => {
+        window.location.href = "/auth/login";
+      }, 100);
     } catch (error: any) {
       console.error("Error during logout:", error);
       console.error("Error details:", error.response?.data);
@@ -127,13 +144,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Still clear the token and state even if API fails
       clearAccessToken();
       clearProfileImageUrl();
+      
+      // Clear all possible storage even on error
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+        // Clear any cookies that might be set
+        document.cookie.split(";").forEach(function(c) { 
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        });
+      }
+      
       setAuthState({
         isAuthenticated: false,
         user: null,
         isLoading: false,
         error: null,
       });
-      window.location.href = "/auth/login";
+      
+      console.log("AuthContext - Logout error, but cleared state, redirecting to login");
+      
+      // Small delay to ensure state updates are processed before redirect
+      setTimeout(() => {
+        window.location.href = "/auth/login";
+      }, 100);
     }
   };
 
@@ -147,9 +181,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       try {
         const currentPath = pathname || "";
-        const isProtectedRoute = currentPath.startsWith("/dashboard") || currentPath.startsWith("/client")|| currentPath.startsWith("/acd-accounts")|| currentPath.startsWith("/admin") || currentPath.startsWith("/profile") || currentPath.startsWith("/stocks") || currentPath.startsWith("/orders") || currentPath.startsWith("/language`");
+        const isProtectedRoute = currentPath.startsWith("/dashboard") || currentPath.startsWith("/client")|| currentPath.startsWith("/acd-accounts")|| currentPath.startsWith("/admin") || currentPath.startsWith("/profile") || currentPath.startsWith("/stocks") || currentPath.startsWith("/orders") || currentPath.startsWith("/language");
+
+        console.log("AuthContext - Initializing auth:", {
+          currentPath,
+          isProtectedRoute,
+          isLoading: authState.isLoading
+        });
+
+        // IMMEDIATE CHECK: If we're on a protected route and have no token, try to refresh first
+        if (isProtectedRoute) {
+          const hasToken = getAccessToken();
+          if (!hasToken) {
+            console.log("AuthContext - IMMEDIATE: No access token on protected route, attempting refresh");
+            
+            // Try to refresh token using HttpOnly refresh cookie
+            const refreshSuccess = await attemptTokenRefresh();
+            
+            if (!refreshSuccess) {
+              console.log("AuthContext - IMMEDIATE: Token refresh failed, setting unauthenticated");
+              setAuthState({
+                isAuthenticated: false,
+                user: null,
+                isLoading: false,
+                error: null,
+              });
+              return;
+            }
+            
+            console.log("AuthContext - IMMEDIATE: Token refresh successful, continuing with profile fetch");
+          }
+        }
 
         if (!isProtectedRoute) {
+          console.log("AuthContext - Not a protected route, setting loading to false");
           setAuthState((prev) => ({ ...prev, isLoading: false }));
           return;
         }
@@ -157,6 +222,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // For admin routes, check for admin authentication
         const isAdminRoute = currentPath.startsWith("/admin") || currentPath.startsWith("/acd-accounts") || currentPath.startsWith("/profile") || currentPath.startsWith("/dashboard") || currentPath.startsWith("/stocks") || currentPath.startsWith("/orders") || currentPath.startsWith("/language");
 
+        console.log("AuthContext - Fetching profile for protected route:", { isAdminRoute });
+        
+        // First check if we have a token - if not, try to refresh first
+        const hasToken = getAccessToken();
+        if (!hasToken) {
+          console.log("AuthContext - No access token found, attempting refresh");
+          
+          // Try to refresh token using HttpOnly refresh cookie
+          const refreshSuccess = await attemptTokenRefresh();
+          
+          if (!refreshSuccess) {
+            console.log("AuthContext - Token refresh failed, setting unauthenticated state");
+            clearAccessToken();
+            setAuthState({
+              isAuthenticated: false,
+              user: null,
+              isLoading: false,
+              error: null,
+            });
+            return;
+          }
+          
+          console.log("AuthContext - Token refresh successful, continuing with profile fetch");
+        }
+        
         let profileResp;
         if (isAdminRoute) {
           // For admin routes, use admin profile API only
@@ -164,6 +254,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           profileResp = await getProfile();
         }
+        
+        console.log("AuthContext - Profile response:", { 
+          hasResponse: !!profileResp, 
+          status: profileResp?.status,
+          hasData: !!profileResp?.data 
+        });
+        
+        // Check if we have a valid response
         if (profileResp?.status && profileResp?.data) {
           const dRaw: any = profileResp.data;
           const userData = dRaw?.user ?? dRaw;
@@ -202,11 +300,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             error: null,
           });
         } else {
-          setAuthState((prev) => ({ ...prev, isLoading: false }));
+          console.log("AuthContext - Profile fetch failed, no valid response");
+          // If profile fetch failed and we're on a protected route, ensure we're logged out
+          if (isProtectedRoute) {
+            console.log("AuthContext - Setting unauthenticated state for protected route");
+            clearAccessToken();
+            setAuthState({
+              isAuthenticated: false,
+              user: null,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            setAuthState((prev) => ({ ...prev, isLoading: false }));
+          }
         }
       } catch (error: any) {
         const statusCode = error?.response?.status as number | undefined;
+        console.log("AuthContext - Error during auth initialization:", {
+          statusCode,
+          message: error.message,
+          pathname: pathname
+        });
+        
         if (statusCode === 401 || statusCode === 403) {
+          console.log("AuthContext - 401/403 error, setting unauthenticated state");
           // Only on 401 treat as logged out
           clearAccessToken();
           setAuthState({
@@ -216,6 +334,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             error: null,
           });
         } else if (statusCode === 404) {
+          console.log("AuthContext - 404 error, keeping authenticated state");
           // Do NOT force logout on 404; avoid redirect loop
           setAuthState((prev) => ({
             ...prev,
@@ -224,7 +343,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             error: null,
           }));
         } else {
-          console.error("Error initializing auth:", error);
+          console.error("AuthContext - Other error initializing auth:", error);
           setAuthState((prev) => ({ ...prev, isLoading: false }));
         }
       }

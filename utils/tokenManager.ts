@@ -12,6 +12,15 @@ let accessToken: string | null = null;
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;
 
+// Suppress any token refresh attempts (e.g., during logout)
+let suppressAuthActions = false;
+
+export const setSuppressAuthActions = (suppress: boolean): void => {
+  suppressAuthActions = suppress;
+};
+
+export const getSuppressAuthActions = (): boolean => suppressAuthActions;
+
 /**
  * Set access token in memory
  */
@@ -53,6 +62,9 @@ export const getAuthorizationHeader = (): string | null => {
  * Prevents multiple simultaneous refresh requests
  */
 export const refreshAccessToken = async (): Promise<string> => {
+  if (suppressAuthActions) {
+    return Promise.reject(new Error('auth_suppressed'));
+  }
   // If already refreshing, return the existing promise
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
@@ -76,28 +88,24 @@ export const refreshAccessToken = async (): Promise<string> => {
  */
 const performTokenRefresh = async (): Promise<string> => {
   try {
-    const response = await fetch('/auth/refresh', {
-      method: 'POST',
-      credentials: 'include', // Include refresh token cookie
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Token refresh failed: ${response.status}`);
+    if (suppressAuthActions) {
+      throw new Error('auth_suppressed');
     }
-
-    const data = await response.json();
-    
-    if (!data.access_token) {
+    // Use service layer (axios) to perform refresh so cookies/headers are consistent
+    const { refreshToken } = await import('@/services/auth');
+    const resp = await refreshToken();
+console.log("resp",resp);
+    if (suppressAuthActions) {
+      throw new Error('auth_suppressed');
+    }
+    if (!resp?.status || !resp?.data?.access_token) {
       throw new Error('No access token in refresh response');
     }
 
     // Update access token in memory
-    setAccessToken(data.access_token);
+    setAccessToken(resp.data.access_token);
     
-    return data.access_token;
+    return resp.data.access_token;
   } catch (error) {
     // Clear token on refresh failure
     clearAccessToken();
@@ -170,6 +178,28 @@ export const isTokenExpired = (): boolean => {
   // For now, we'll rely on the server to tell us when the token is expired
   // This could be enhanced to decode the JWT and check expiration
   return false;
+};
+
+/**
+ * Attempt to refresh token using HttpOnly refresh cookie
+ * Since refresh token is HttpOnly, we can't detect it client-side
+ * Always attempt the API call and let the server handle the cookie
+ */
+export const attemptTokenRefresh = async (): Promise<boolean> => {
+  try {
+    if (suppressAuthActions) {
+      return false;
+    }
+    console.log('Attempting token refresh using HttpOnly refresh cookie');
+    await refreshAccessToken();
+    return true;
+  } catch (error) {
+    if ((error as any)?.message === 'auth_suppressed') {
+      return false;
+    }
+    console.error('Token refresh attempt failed:', error);
+    return false;
+  }
 };
 
 /**

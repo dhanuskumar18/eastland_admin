@@ -216,3 +216,44 @@ export async function updateAdminProfile(data: any): Promise<ApiResponse<any>> {
   const response = await apiClient.put('/admin/auth/profile/update', data);
   return response.data;
 }
+
+// Refresh access token using refresh cookie (HttpOnly) managed by the server
+// Use direct fetch to avoid axios interceptor loops
+export async function refreshToken(): Promise<ApiResponse<{ access_token: string }>> {
+  try {
+    const response = await fetch('http://localhost:5000/auth/refresh', {
+      method: 'POST',
+      credentials: 'include', // Include refresh token cookie
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      // If refresh fails with 401/403, redirect to login immediately
+      if (response.status === 401 || response.status === 403) {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
+        throw new Error('Refresh token invalid - redirected to login');
+      }
+      throw new Error(`Token refresh failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      status: true,
+      data: data,
+      version: '1.0',
+      validationErrors: [],
+      code: 200,
+      message: 'Success'
+    };
+  } catch (error: any) {
+    // If it's a redirect error, don't re-throw to avoid loops
+    if (error?.message?.includes('redirected to login')) {
+      throw error;
+    }
+    throw new Error(`Refresh token API call failed: ${error?.message || 'Unknown error'}`);
+  }
+}

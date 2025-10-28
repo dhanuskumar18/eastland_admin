@@ -81,8 +81,13 @@ apiClient.interceptors.response.use(
           }
           
           return apiClient(originalRequest);
-        } catch (refreshError) {
+        } catch (refreshError: any) {
           console.error('Token refresh failed:', refreshError);
+          
+          // If refresh already redirected, don't redirect again
+          if (refreshError?.message?.includes('redirected to login')) {
+            return Promise.reject(refreshError);
+          }
           
           // Clear any stored auth data
           if (typeof window !== 'undefined') {
