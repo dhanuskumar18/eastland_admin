@@ -34,6 +34,18 @@ const dummyPages = [
     title: "Our ServicesPage",
     url: "www.eastland.com/our-services",
     date: "2025/10/03 at 02:15 pm"
+  },
+  {
+    id: 6,
+    title: "Our Portfolio",
+    url: "www.eastland.com/our-portfolio",
+    date: "2025/10/02 at 04:30 pm"
+  },
+  {
+    id: 7,
+    title: "Contact Us",
+    url: "www.eastland.com/contact-us",
+    date: "2025/10/01 at 10:15 am"
   }
 ];
 
@@ -82,6 +94,9 @@ export default function PagesPage() {
                         page.url.includes('/about') ? '/pages/edit/about-us' : 
                         page.url.includes('/our-products') ? '/pages/edit/our-products' : 
                         page.url.includes('/qsr-designs') ? '/pages/edit/qsr-designs' : 
+                        page.url.includes('/our-services') ? '/pages/edit/our-services' : 
+                        page.url.includes('/our-portfolio') ? '/pages/edit/our-portfolio' : 
+                        page.url.includes('/contact-us') ? '/pages/edit/contact-us' : 
                         '/pages/edit'
                       }>
                         <button className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
