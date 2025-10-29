@@ -13,26 +13,26 @@ const dummyPages = [
   },
   {
     id: 2,
-    title: "YouTube Playlist Sync",
+    title: "About Us Page",
     url: "www.eastland.com/about-us",
     date: "2025/10/06 at 09:30 am"
   },
   {
     id: 3,
-    title: "Contact Form Page",
-    url: "www.eastland.com/contact",
+    title: "Our Products Page",
+    url: "www.eastland.com/our-products",
     date: "2025/10/05 at 03:45 pm"
   },
   {
     id: 4,
-    title: "Product Listing",
-    url: "www.eastland.com/products",
+    title: "QSR Designs Page",
+    url: "www.eastland.com/qsr-designs",
     date: "2025/10/04 at 11:20 am"
   },
   {
     id: 5,
-    title: "About Us Page",
-    url: "www.eastland.com/about",
+    title: "Our ServicesPage",
+    url: "www.eastland.com/our-services",
     date: "2025/10/03 at 02:15 pm"
   }
 ];
@@ -78,7 +78,12 @@ export default function PagesPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex items-center space-x-3">
-                      <Link href={page.url.includes('/about') ? '/pages/edit/about-us' : '/pages/edit'}>
+                      <Link href={
+                        page.url.includes('/about') ? '/pages/edit/about-us' : 
+                        page.url.includes('/our-products') ? '/pages/edit/our-products' : 
+                        page.url.includes('/qsr-designs') ? '/pages/edit/qsr-designs' : 
+                        '/pages/edit'
+                      }>
                         <button className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
                           <Pencil className="w-4 h-4" />
                         </button>
