@@ -2,8 +2,8 @@
 
 export default function DashboardPage() {
   return (
-    <main>
-      {/* Dashboard content will be added here */}
-    </main>
+    <div className="min-h-screen">
+      {/* Dashboard content will be added later */}
+    </div>
   )
 } 
