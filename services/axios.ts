@@ -38,11 +38,8 @@ async function ensureCsrfToken(forceFresh: boolean = false): Promise<string | nu
     const endpoints = ['/auth/csrf-token/authenticated', '/auth/csrf-token', '/csrf-token', '/auth/csrf', '/csrf'];
     for (const ep of endpoints) {
       try {
-        const authHeader = getAuthorizationHeader();
-        const res = await axios.get(`${API_BASE_URL}${ep}`, {
-          withCredentials: true,
-          headers: authHeader ? { Authorization: authHeader } : undefined,
-        });
+        // Use apiClient so interceptors attach Authorization and refresh on 401
+        const res = await apiClient.get(ep, { withCredentials: true });
         const headerToken = (res.headers['x-csrf-token'] as string) || (res.headers['X-CSRF-Token'] as any);
         const bodyToken = res.data?.token || res.data?.csrfToken;
         const cookieToken = getCookie('csrfToken') || getCookie('XSRF-TOKEN') || getCookie('csrf-token');
@@ -59,6 +56,12 @@ async function ensureCsrfToken(forceFresh: boolean = false): Promise<string | nu
   }
 }
 
+// Public helper to force-refresh an authenticated CSRF token before a write
+export async function fetchAuthenticatedCsrfToken(): Promise<string | null> {
+  const token = await ensureCsrfToken(true);
+  return token;
+}
+
 // Add request interceptor to include Authorization header
 apiClient.interceptors.request.use(
   async (config) => {
@@ -70,10 +73,14 @@ apiClient.interceptors.request.use(
     // Attach CSRF token on state-changing methods
     const method = (config.method || 'get').toUpperCase();
     if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
-      const csrf = await ensureCsrfToken(true);
-      if (csrf) {
-        // Use canonical header expected by backend
-        (config.headers as any)['X-CSRF-Token'] = csrf;
+      const path = config.url || '';
+      // Do NOT require CSRF for auth endpoints (login/register/forgot etc.)
+      if (!String(path).startsWith('/auth/')) {
+        const csrf = await ensureCsrfToken(true);
+        if (csrf) {
+          // Use canonical header expected by backend
+          (config.headers as any)['X-CSRF-Token'] = csrf;
+        }
       }
     }
     
@@ -155,6 +162,10 @@ apiClient.interceptors.response.use(
     // Handle 403 errors (forbidden) - attempt CSRF token fetch and retry once, no auto-redirect
     if (error.response?.status === 403) {
       const originalRequest = error.config;
+      // Don't CSRF-retry auth endpoints
+      if (String(originalRequest?.url || '').startsWith('/auth/')) {
+        return Promise.reject(error);
+      }
       if (!originalRequest._csrfRetry) {
         originalRequest._csrfRetry = true;
         const csrf = await ensureCsrfToken(true);

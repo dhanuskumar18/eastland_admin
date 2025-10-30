@@ -1,8 +1,33 @@
 "use client"
 
 import { Upload, X } from 'lucide-react';
+import { useState } from 'react';
+import { useUpdateSection } from '@/hooks/useSectionsApi';
 
-export default function BannerSectionForm() {
+interface BannerSectionFormProps {
+  section: { id: number; name?: string; pageId?: number };
+}
+
+export default function BannerSectionForm({ section }: BannerSectionFormProps) {
+  const { mutate: updateSection, isPending } = useUpdateSection();
+
+  // Minimal representative fields for a banner hero
+  const [title, setTitle] = useState('');
+  const [subtitle, setSubtitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [buttonText, setButtonText] = useState('');
+
+  const handleSave = () => {
+    const content = {
+      title,
+      subtitle,
+      description,
+      buttonText,
+    } as any;
+
+    updateSection({ id: section.id, data: { name: section.name, pageId: section.pageId, translations: [{ locale: 'en', content: JSON.stringify(content) }] } });
+  };
+
   return (
     <div className="mt-4 p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-6">
       {/* Slider 1 */}
@@ -13,17 +38,21 @@ export default function BannerSectionForm() {
           <div className="grid grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Banner Tittle *</label>
-              <input 
+              <input
                 type="text" 
                 placeholder="Smart Setup."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Banner Sub Tittle *</label>
-              <input 
+              <input
                 type="text" 
                 placeholder="Efficiency starts at the Layout."
+                value={subtitle}
+                onChange={(e) => setSubtitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400"
               />
             </div>
@@ -39,17 +68,21 @@ export default function BannerSectionForm() {
           <div className="grid grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Banner Description *</label>
-              <input 
+              <input
                 type="text" 
                 placeholder="Smart Setup."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Button Name *</label>
-              <input 
+              <input
                 type="text" 
                 placeholder="Explore Our Projects."
+                value={buttonText}
+                onChange={(e) => setButtonText(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400"
               />
             </div>
@@ -182,6 +215,15 @@ export default function BannerSectionForm() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="flex justify-end">
+        <button
+          onClick={handleSave}
+          disabled={isPending}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+        >
+          {isPending ? 'Saving...' : 'Save Changes'}
+        </button>
       </div>
     </div>
   );
