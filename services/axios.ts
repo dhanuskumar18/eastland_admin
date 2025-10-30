@@ -10,15 +10,71 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  xsrfCookieName: 'csrfToken',
+  xsrfHeaderName: 'x-csrf-token',
 });
+
+// CSRF helpers
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+let csrfCache: { token: string | null; ts: number } = { token: null, ts: 0 } as any;
+const CSRF_TTL_MS = 2 * 60 * 1000;
+
+async function ensureCsrfToken(forceFresh: boolean = false): Promise<string | null> {
+  // For strict backends, prefer fresh token for writes
+  if (!forceFresh) {
+    const fromCookie = getCookie('csrfToken') || getCookie('XSRF-TOKEN') || getCookie('csrf-token');
+    if (fromCookie) return fromCookie;
+    if (csrfCache.token && Date.now() - csrfCache.ts < CSRF_TTL_MS) {
+      return csrfCache.token;
+    }
+  }
+  try {
+    // Attempt to fetch from authenticated and public endpoints
+    const endpoints = ['/auth/csrf-token/authenticated', '/auth/csrf-token', '/csrf-token', '/auth/csrf', '/csrf'];
+    for (const ep of endpoints) {
+      try {
+        const authHeader = getAuthorizationHeader();
+        const res = await axios.get(`${API_BASE_URL}${ep}`, {
+          withCredentials: true,
+          headers: authHeader ? { Authorization: authHeader } : undefined,
+        });
+        const headerToken = (res.headers['x-csrf-token'] as string) || (res.headers['X-CSRF-Token'] as any);
+        const bodyToken = res.data?.token || res.data?.csrfToken;
+        const cookieToken = getCookie('csrfToken') || getCookie('XSRF-TOKEN') || getCookie('csrf-token');
+        const token = headerToken || bodyToken || cookieToken || null;
+        if (token) {
+          csrfCache = { token, ts: Date.now() } as any;
+          return token;
+        }
+      } catch {}
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 // Add request interceptor to include Authorization header
 apiClient.interceptors.request.use(
-  (config) => {
+  async (config) => {
     // Add Authorization header if access token exists
     const authHeader = getAuthorizationHeader();
     if (authHeader) {
       config.headers.Authorization = authHeader;
+    }
+    // Attach CSRF token on state-changing methods
+    const method = (config.method || 'get').toUpperCase();
+    if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') {
+      const csrf = await ensureCsrfToken(true);
+      if (csrf) {
+        // Use canonical header expected by backend
+        (config.headers as any)['X-CSRF-Token'] = csrf;
+      }
     }
     
     console.log('Making API request:', {
@@ -96,15 +152,24 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle 403 errors (forbidden)
+    // Handle 403 errors (forbidden) - attempt CSRF token fetch and retry once, no auto-redirect
     if (error.response?.status === 403) {
-      console.log('Access forbidden - redirecting to login');
-      
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('profileImageUrl');
-        sessionStorage.clear();
-        window.location.href = '/auth/login';
+      const originalRequest = error.config;
+      if (!originalRequest._csrfRetry) {
+        originalRequest._csrfRetry = true;
+        const csrf = await ensureCsrfToken(true);
+        if (csrf) {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers['X-CSRF-Token'] = csrf;
+          try {
+            return apiClient(originalRequest);
+          } catch (e) {
+            // fallthrough to redirect below
+          }
+        }
       }
+      // Do not redirect on 403; surface the error to the UI instead
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

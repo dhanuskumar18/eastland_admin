@@ -2,63 +2,75 @@
 
 import { Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-
-// Dummy data for pages
-const dummyPages = [
-  {
-    id: 1,
-    title: "Homepage Update",
-    url: "www.eastland.com/home",
-    date: "2025/10/07 at 12:11 pm"
-  },
-  {
-    id: 2,
-    title: "About Us Page",
-    url: "www.eastland.com/about-us",
-    date: "2025/10/06 at 09:30 am"
-  },
-  {
-    id: 3,
-    title: "Our Products Page",
-    url: "www.eastland.com/our-products",
-    date: "2025/10/05 at 03:45 pm"
-  },
-  {
-    id: 4,
-    title: "QSR Designs Page",
-    url: "www.eastland.com/qsr-designs",
-    date: "2025/10/04 at 11:20 am"
-  },
-  {
-    id: 5,
-    title: "Our ServicesPage",
-    url: "www.eastland.com/our-services",
-    date: "2025/10/03 at 02:15 pm"
-  },
-  {
-    id: 6,
-    title: "Our Portfolio",
-    url: "www.eastland.com/our-portfolio",
-    date: "2025/10/02 at 04:30 pm"
-  },
-  {
-    id: 7,
-    title: "Contact Us",
-    url: "www.eastland.com/contact-us",
-    date: "2025/10/01 at 10:15 am"
-  }
-];
+import { useMemo, useState } from 'react';
+import { useCreatePage, useDeletePage, usePages } from '@/hooks/usePagesApi';
 
 export default function PagesPage() {
+  const { data, isLoading } = usePages();
+  const { mutate: removePage, isPending: isDeleting } = useDeletePage();
+  const { mutate: createPage, isPending: isCreating } = useCreatePage();
+  const pages = useMemo(() => (Array.isArray(data?.data) ? data?.data : []), [data]);
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
+
   return (
     <div className="min-h-screen">
       {/* Header with Title and Add Button */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Pages</h1>
-        <button className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
-          Add New
+        <button
+          className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+          onClick={() => setShowForm(v => !v)}
+        >
+          {showForm ? 'Close' : 'Add New'}
         </button>
       </div>
+
+      {showForm && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Page Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Home"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Page Link (slug)</label>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="home"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+                onClick={() => {
+                  if (!name.trim() || !slug.trim()) return;
+                  createPage({ name: name.trim(), slug: slug.trim() }, {
+                    onSuccess: () => {
+                      setName('');
+                      setSlug('');
+                      setShowForm(false);
+                    }
+                  });
+                }}
+                disabled={isCreating}
+              >
+                {isCreating ? 'Creating...' : 'Create'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -74,42 +86,48 @@ export default function PagesPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {dummyPages.map((page, index) => (
-                <tr key={page.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {(index + 1).toString().padStart(2, '0')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {page.title}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {page.url}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {page.date}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <div className="flex items-center space-x-3">
-                      <Link href={
-                        page.url.includes('/about') ? '/pages/edit/about-us' : 
-                        page.url.includes('/our-products') ? '/pages/edit/our-products' : 
-                        page.url.includes('/qsr-designs') ? '/pages/edit/qsr-designs' : 
-                        page.url.includes('/our-services') ? '/pages/edit/our-services' : 
-                        page.url.includes('/our-portfolio') ? '/pages/edit/our-portfolio' : 
-                        page.url.includes('/contact-us') ? '/pages/edit/contact-us' : 
-                        '/pages/edit'
-                      }>
-                        <button className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                      </Link>
-                      <button className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+              {isLoading ? (
+                <tr>
+                  <td className="px-6 py-4 text-sm text-gray-600" colSpan={5}>Loading...</td>
                 </tr>
-              ))}
+              ) : pages.length === 0 ? (
+                <tr>
+                  <td className="px-6 py-4 text-sm text-gray-600" colSpan={5}>No pages found.</td>
+                </tr>
+              ) : (
+                pages.map((page, index) => (
+                  <tr key={page.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {(index + 1).toString().padStart(2, '0')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {page.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {`/${page.slug}`}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {page.createdAt ? new Date(page.createdAt).toLocaleString() : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex items-center space-x-3">
+                        <Link href={`/pages/edit`}>
+                          <button className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        </Link>
+                        <button
+                          className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                          onClick={() => removePage(page.id)}
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
