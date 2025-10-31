@@ -27,7 +27,8 @@ export default function AboutUsForm({ section }: AboutUsFormProps) {
   // Prefill from existing translation content if available
   useEffect(() => {
     try {
-      const translations: any[] | undefined = (sectionResp as any)?.data?.translations;
+      const root: any = (sectionResp as any)?.data ?? sectionResp;
+      const translations: any[] | undefined = root?.translations;
       const en = translations?.find((t) => t?.locale?.toLowerCase().startsWith('en')) || translations?.[0];
       const content = en?.content || {};
       if (content) {
@@ -66,7 +67,7 @@ export default function AboutUsForm({ section }: AboutUsFormProps) {
 
     await fetchAuthenticatedCsrfToken();
     updateSection(
-      { id: section.id, data: { name: section.name, pageId: section.pageId, translations: [{ locale: 'en', content: JSON.stringify(content) }] } },
+      { id: section.id, data: { name: section.name, pageId: section.pageId, translations: [{ "locale": 'en', "content": content }] } },
       {
         onSuccess: () => {
           showToast({ type: 'success', title: 'Saved', message: 'About Us updated successfully.' });

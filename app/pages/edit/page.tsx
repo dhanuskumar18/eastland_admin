@@ -36,7 +36,7 @@ export default function EditPagesPage() {
     if (key.includes('about')) return <AboutUsForm section={section} />;
     if (key.includes('video')) return <FeaturedVideosForm />;
     if (key.includes('product')) return <ProductsForm />;
-    if (key.includes('why choose')) return <WhyChooseUsForm />;
+    if (key.includes('why choose')) return <WhyChooseUsForm section={section} />;
     if (key.includes('gallery')) return <OurGalleryForm />;
     if (key.includes('testimonial')) return <ClientTestimonialForm />;
     return null;

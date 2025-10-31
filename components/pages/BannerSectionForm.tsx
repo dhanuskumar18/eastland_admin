@@ -1,8 +1,9 @@
 "use client"
 
 import { Upload, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUpdateSection } from '@/hooks/useSectionsApi';
+import { useSection } from '@/hooks/useSectionsApi';
 
 interface BannerSectionFormProps {
   section: { id: number; name?: string; pageId?: number };
@@ -10,12 +11,29 @@ interface BannerSectionFormProps {
 
 export default function BannerSectionForm({ section }: BannerSectionFormProps) {
   const { mutate: updateSection, isPending } = useUpdateSection();
+  const { data: sectionResp } = useSection(section.id, true);
 
   // Minimal representative fields for a banner hero
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
   const [buttonText, setButtonText] = useState('');
+
+  // Prefill from GET /sections/:id
+  useEffect(() => {
+    try {
+      const root: any = (sectionResp as any)?.data ?? sectionResp;
+      const translations: any[] | undefined = root?.translations;
+      const en = translations?.find((t) => t?.locale?.toLowerCase().startsWith('en')) || translations?.[0];
+      const content = en?.content || {};
+      if (content) {
+        if (content.title !== undefined) setTitle(content.title || '');
+        if (content.subtitle !== undefined) setSubtitle(content.subtitle || '');
+        if (content.description !== undefined) setDescription(content.description || '');
+        if (content.buttonText !== undefined) setButtonText(content.buttonText || '');
+      }
+    } catch {}
+  }, [sectionResp]);
 
   const handleSave = () => {
     const content = {
@@ -25,7 +43,7 @@ export default function BannerSectionForm({ section }: BannerSectionFormProps) {
       buttonText,
     } as any;
 
-    updateSection({ id: section.id, data: { name: section.name, pageId: section.pageId, translations: [{ locale: 'en', content: JSON.stringify(content) }] } });
+    updateSection({ id: section.id, data: { name: section.name, pageId: section.pageId, translations: [{ "locale": 'en', "content": content }] } });
   };
 
   return (
