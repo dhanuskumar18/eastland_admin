@@ -34,11 +34,11 @@ export default function EditPagesPage() {
     const key = (section?.name || '').toLowerCase();
     if (key.includes('banner')) return <BannerSectionForm section={section} />;
     if (key.includes('about')) return <AboutUsForm section={section} />;
-    if (key.includes('video')) return <FeaturedVideosForm />;
+    if (key.includes('video')) return <FeaturedVideosForm section={section} />;
     if (key.includes('product')) return <ProductsForm />;
     if (key.includes('why choose')) return <WhyChooseUsForm section={section} />;
-    if (key.includes('gallery')) return <OurGalleryForm />;
-    if (key.includes('testimonial')) return <ClientTestimonialForm />;
+    if (key.includes('gallery')) return <OurGalleryForm section={section} />;
+    if (key.includes('testimonial')) return <ClientTestimonialForm section={section} />;
     return null;
   };
 
