@@ -37,17 +37,22 @@ export async function listSections(pageId?: number): Promise<ApiResponse<Section
     params: pageId ? { pageId } : undefined,
   });
   const raw = res.data;
-  const items = Array.isArray(raw)
-    ? raw
-    : Array.isArray(raw?.data)
-    ? raw.data
-    : Array.isArray(raw?.data?.items)
-    ? raw.data.items
-    : Array.isArray(raw?.sections)
-    ? raw.sections
-    : Array.isArray(raw?.data?.sections)
-    ? raw.data.sections
-    : [];
+  let items: any[] = [];
+  if (Array.isArray(raw)) {
+    items = raw;
+  } else if (Array.isArray(raw?.data)) {
+    items = raw.data;
+  } else if (Array.isArray(raw?.data?.items)) {
+    items = raw.data.items;
+  } else if (Array.isArray(raw?.sections)) {
+    items = raw.sections;
+  } else if (Array.isArray(raw?.data?.sections)) {
+    items = raw.data.sections;
+  } else if (raw && typeof raw === 'object' && (raw.id || raw.name)) {
+    items = [raw];
+  } else if (raw?.data && typeof raw.data === 'object' && (raw.data.id || raw.data.name)) {
+    items = [raw.data];
+  }
   return {
     version: raw?.version ?? '1',
     validationErrors: [],

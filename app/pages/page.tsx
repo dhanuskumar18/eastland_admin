@@ -111,7 +111,7 @@ export default function PagesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center space-x-3">
-                        <Link href={`/pages/edit`}>
+                        <Link href={`/pages/edit/${page.id}`}>
                           <button className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors">
                             <Pencil className="w-4 h-4" />
                           </button>
