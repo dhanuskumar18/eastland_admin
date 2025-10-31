@@ -18,6 +18,18 @@ import MissionForm from '@/components/pages/about/MissionForm';
 import VisionForm from '@/components/pages/about/VisionForm';
 import TeamForm from '@/components/pages/about/TeamForm';
 import CompanyBackgroundForm from '@/components/pages/about/CompanyBackgroundForm';
+import AboutOurProductsForm from '@/components/pages/products/AboutOurProductsForm';
+import QuickInstallationForm from '@/components/pages/products/QuickInstallationForm';
+import OurProductsForm from '@/components/pages/products/OurProductsForm';
+import QsrDesignsForm from '@/components/pages/qsr-designs/QsrDesignsForm';
+import AboutQsrDesignsForm from '@/components/pages/qsr-designs/AboutQsrDesignsForm';
+import FutureReadyInstallationsForm from '@/components/pages/qsr-designs/FutureReadyInstallationsForm';
+import OurServicesForm from '@/components/pages/our-services/OurServicesForm';
+import AboutOurServicesForm from '@/components/pages/our-services/AboutOurServicesForm';
+import KitchenInstallationForm from '@/components/pages/our-services/KitchenInstallationForm';
+import PortfolioOurGalleryForm from '@/components/pages/portfolio/OurGalleryForm';
+import ContactInfoForm from '@/components/pages/contact/ContactInfoForm';
+import ContactFormConfigForm from '@/components/pages/contact/ContactFormConfigForm';
 
 export default function EditPagesPage() {
   const params = useParams();
@@ -58,7 +70,7 @@ export default function EditPagesPage() {
     if (key.includes('team')) return <TeamForm section={section} />;
     if (key.includes('company') || key.includes('background')) return <CompanyBackgroundForm section={section} />;
     
-    
+    //Home Page Sections
     if (key.includes('banner')) return <BannerSectionForm section={section} />;
     if (key.includes('about')) return <AboutUsForm section={section} />;
     if (key.includes('video')) return <FeaturedVideosForm section={section} />;
@@ -66,6 +78,24 @@ export default function EditPagesPage() {
     if (key.includes('why choose')) return <WhyChooseUsForm section={section} />;
     if (key.includes('gallery')) return <OurGalleryForm section={section} />;
     if (key.includes('testimonial')) return <ClientTestimonialForm section={section} />;
+    
+    // Products Page Sections
+    if (key.includes('about our products')) return <AboutOurProductsForm section={section} />;
+    if (key.includes('our products')) return <OurProductsForm section={section} />;
+    if (key.includes('quick') && key.includes('installation')) return <QuickInstallationForm section={section} />;
+    // QSR Designs Page Sections
+    if (key.includes('about qsr')) return <AboutQsrDesignsForm section={section} />;
+    if (key.includes('future ready') && key.includes('installation')) return <FutureReadyInstallationsForm section={section} />;
+    if (key.includes('qsr designs') || key.includes('qsr design')) return <QsrDesignsForm section={section} />;
+    // Our Services Page Sections
+    if (key.includes('about our services')) return <AboutOurServicesForm section={section} />;
+    if (key.includes('our services')) return <OurServicesForm section={section} />;
+    if (key.includes('kitchen') && key.includes('installation')) return <KitchenInstallationForm section={section} />;
+    // Portfolio Page Sections
+    if ((key.includes('portfolio') && key.includes('gallery')) || key.includes('portfolio gallery')) return <PortfolioOurGalleryForm section={section} />;
+    // Contact Page Sections
+    if (key.includes('contact info') || key.includes('contact information')) return <ContactInfoForm section={section} />;
+    if (key.includes('contact form')) return <ContactFormConfigForm section={section} />;
     return null;
   };
 

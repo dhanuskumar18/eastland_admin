@@ -1,25 +1,71 @@
 "use client"
 
 import { Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSection, useUpdateSection } from '@/hooks/useSectionsApi';
+import { useToast } from '@/hooks/use-toast';
+import { fetchAuthenticatedCsrfToken } from '@/services/axios';
 
 type Subject = { id: number; label: string };
 
-export default function ContactFormConfigForm() {
+interface Props { section: { id: number; name?: string; pageId?: number } }
+
+export default function ContactFormConfigForm({ section }: Props) {
+  const { data: sectionResp } = useSection(section.id, true);
+  const { mutate: updateSection, isPending } = useUpdateSection();
+  const { showToast } = useToast();
+
   const [enableFirstName, setEnableFirstName] = useState(true);
   const [enableLastName, setEnableLastName] = useState(true);
   const [enableEmail, setEnableEmail] = useState(true);
   const [enablePhone, setEnablePhone] = useState(true);
   const [messagePlaceholder, setMessagePlaceholder] = useState("Write your message..");
   const [buttonLabel, setButtonLabel] = useState("Send Message");
-  const [subjects, setSubjects] = useState<Subject[]>([
-    { id: 1, label: "General Inquiry" },
-    { id: 2, label: "Support" }
-  ]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+
+  useEffect(() => {
+    try {
+      const root: any = (sectionResp as any)?.data ?? sectionResp;
+      const translations: any[] | undefined = root?.translations;
+      const en = translations?.find((t) => t?.locale?.toLowerCase().startsWith('en')) || translations?.[0];
+      const content = en?.content || {};
+      if (content) {
+        if (content.enableFirstName !== undefined) setEnableFirstName(!!content.enableFirstName);
+        if (content.enableLastName !== undefined) setEnableLastName(!!content.enableLastName);
+        if (content.enableEmail !== undefined) setEnableEmail(!!content.enableEmail);
+        if (content.enablePhone !== undefined) setEnablePhone(!!content.enablePhone);
+        if (content.messagePlaceholder !== undefined) setMessagePlaceholder(content.messagePlaceholder || '');
+        if (content.buttonLabel !== undefined) setButtonLabel(content.buttonLabel || '');
+        if (Array.isArray(content.subjects)) setSubjects(content.subjects.map((s: any, idx: number) => ({ id: idx + 1, label: s?.label || '' })));
+      }
+    } catch {}
+  }, [sectionResp]);
 
   const addSubject = () => setSubjects([...subjects, { id: Date.now(), label: "New Subject" }]);
   const updateSubject = (id: number, value: string) => setSubjects(subjects.map(s => s.id === id ? { ...s, label: value } : s));
   const removeSubject = (id: number) => setSubjects(subjects.filter(s => s.id !== id));
+
+  const handleSave = async () => {
+    const root: any = (sectionResp as any)?.data ?? sectionResp;
+    const translations: any[] | undefined = root?.translations;
+    const en = translations?.find((t) => t?.locale?.toLowerCase().startsWith('en')) || translations?.[0];
+    const baseContent = (en?.content || {}) as Record<string, any>;
+    const content = {
+      ...baseContent,
+      enableFirstName,
+      enableLastName,
+      enableEmail,
+      enablePhone,
+      messagePlaceholder,
+      buttonLabel,
+      subjects: subjects.map(s => ({ label: s.label }))
+    };
+    await fetchAuthenticatedCsrfToken();
+    updateSection({ id: section.id, data: { name: section.name, pageId: section.pageId, translations: [{ locale: 'en', content }] } }, {
+      onSuccess: () => showToast({ type: 'success', title: 'Saved', message: 'Contact form config updated.' }),
+      onError: (err: any) => showToast({ type: 'destructive', title: 'Save failed', message: err?.response?.data?.message || err?.message || 'Please try again.' })
+    });
+  };
 
   return (
     <div className="mt-4 p-6 bg-gray-50 rounded-lg border border-gray-200">
@@ -79,6 +125,9 @@ export default function ContactFormConfigForm() {
             onChange={(e) => setButtonLabel(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400"
           />
+        </div>
+        <div className="col-span-2 flex justify-end">
+          <button onClick={handleSave} disabled={isPending} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">{isPending ? 'Saving...' : 'Save Changes'}</button>
         </div>
       </div>
     </div>

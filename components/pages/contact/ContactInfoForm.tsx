@@ -1,23 +1,43 @@
 "use client"
 
 import { Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSection, useUpdateSection } from '@/hooks/useSectionsApi';
+import { useToast } from '@/hooks/use-toast';
+import { fetchAuthenticatedCsrfToken } from '@/services/axios';
 
 type SocialLink = { id: number; label: string; url: string };
 type Phone = { id: number; value: string };
 type Email = { id: number; value: string };
 
-export default function ContactInfoForm() {
-  const [phones, setPhones] = useState<Phone[]>([
-    { id: 1, value: "876.322.1010" },
-    { id: 2, value: "876.886.3000" }
-  ]);
-  const [emails, setEmails] = useState<Email[]>([
-    { id: 1, value: "eastlanddbs@hotmail.com" }
-  ]);
-  const [socials, setSocials] = useState<SocialLink[]>([
-    { id: 1, label: "Twitter", url: "https://twitter.com/" }
-  ]);
+interface Props { section: { id: number; name?: string; pageId?: number } }
+
+export default function ContactInfoForm({ section }: Props) {
+  const { data: sectionResp } = useSection(section.id, true);
+  const { mutate: updateSection, isPending } = useUpdateSection();
+  const { showToast } = useToast();
+
+  const [intro, setIntro] = useState('');
+  const [address, setAddress] = useState('');
+  const [phones, setPhones] = useState<Phone[]>([]);
+  const [emails, setEmails] = useState<Email[]>([]);
+  const [socials, setSocials] = useState<SocialLink[]>([]);
+
+  useEffect(() => {
+    try {
+      const root: any = (sectionResp as any)?.data ?? sectionResp;
+      const translations: any[] | undefined = root?.translations;
+      const en = translations?.find((t) => t?.locale?.toLowerCase().startsWith('en')) || translations?.[0];
+      const content = en?.content || {};
+      if (content) {
+        if (content.intro !== undefined) setIntro(content.intro || '');
+        if (content.address !== undefined) setAddress(content.address || '');
+        if (Array.isArray(content.phones)) setPhones(content.phones.map((p: any, idx: number) => ({ id: idx + 1, value: p?.value || p || '' })));
+        if (Array.isArray(content.emails)) setEmails(content.emails.map((e: any, idx: number) => ({ id: idx + 1, value: e?.value || e || '' })));
+        if (Array.isArray(content.socials)) setSocials(content.socials.map((s: any, idx: number) => ({ id: idx + 1, label: s?.label || '', url: s?.url || '' })));
+      }
+    } catch {}
+  }, [sectionResp]);
 
   const addPhone = () => setPhones([...phones, { id: Date.now(), value: "" }]);
   const removePhone = (id: number) => setPhones(phones.filter(p => p.id !== id));
@@ -32,6 +52,26 @@ export default function ContactInfoForm() {
   const updateSocial = (id: number, field: "label" | "url", value: string) =>
     setSocials(socials.map(s => s.id === id ? { ...s, [field]: value } : s));
 
+  const handleSave = async () => {
+    const root: any = (sectionResp as any)?.data ?? sectionResp;
+    const translations: any[] | undefined = root?.translations;
+    const en = translations?.find((t) => t?.locale?.toLowerCase().startsWith('en')) || translations?.[0];
+    const baseContent = (en?.content || {}) as Record<string, any>;
+    const content = {
+      ...baseContent,
+      intro,
+      address,
+      phones: phones.map(p => ({ value: p.value })),
+      emails: emails.map(e => ({ value: e.value })),
+      socials: socials.map(s => ({ label: s.label, url: s.url }))
+    };
+    await fetchAuthenticatedCsrfToken();
+    updateSection({ id: section.id, data: { name: section.name, pageId: section.pageId, translations: [{ locale: 'en', content }] } }, {
+      onSuccess: () => showToast({ type: 'success', title: 'Saved', message: 'Contact info updated.' }),
+      onError: (err: any) => showToast({ type: 'destructive', title: 'Save failed', message: err?.response?.data?.message || err?.message || 'Please try again.' })
+    });
+  };
+
   return (
     <div className="mt-4 p-6 bg-gray-50 rounded-lg border border-gray-200">
       <div className="grid grid-cols-2 gap-6">
@@ -40,6 +80,8 @@ export default function ContactInfoForm() {
           <textarea
             placeholder="Write a short intro for your contact card"
             rows={3}
+            value={intro}
+            onChange={(e) => setIntro(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400"
           />
         </div>
@@ -91,6 +133,8 @@ export default function ContactInfoForm() {
           <input
             type="text"
             placeholder="Enter address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400"
           />
         </div>
@@ -124,6 +168,11 @@ export default function ContactInfoForm() {
             ))}
           </div>
         </div>
+      </div>
+      <div className="flex justify-end mt-6">
+        <button onClick={handleSave} disabled={isPending} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+          {isPending ? 'Saving...' : 'Save Changes'}
+        </button>
       </div>
     </div>
   );
